@@ -14,4 +14,6 @@ build:
 
 clean:
 	$(RM) *.class
-	
+
+zip:
+	zip xnacar00 Main.java readme.md Makefile
