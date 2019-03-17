@@ -1,10 +1,10 @@
 import org.xml.sax.InputSource;
 import javax.xml.parsers.DocumentBuilderFactory;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.io.StringReader;
+import java.io.*;
 import java.net.Socket;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -14,7 +14,6 @@ public class Main {
         String location;
         String apiKey;
         if (args.length < 2) {
-            System.out.print(args.length);
             System.err.print("Invalid number of arguments\n");
             return;
         }
@@ -24,7 +23,6 @@ public class Main {
         String serverResponse;
         try {
             serverResponse = loadContent(location, apiKey);
-            
             if (!serverResponse.contains("<?xml version=\"1.0\" encoding=\"UTF-8\"?>")){
                 System.err.println(serverResponse);
                 return;
@@ -37,11 +35,18 @@ public class Main {
         }
     }
 
+    /**
+        @brief Making HTTP request and reading the response
+        @arg location name of location from where we are looking for weather dat
+        @arg apiKey API key to the OpenWeatherMap.org
+        @return String containg the response
+    */
     private static String loadContent(String location, String apiKey) throws Exception {
         String result = "";
         String mode = "xml";
         String units = "metrics";
-        String path = "/data/2.5/weather?q=" + location + "&mode="+mode+"&units="+ units + "&APPID=" + apiKey;
+        String language = "en";
+        String path = "/data/2.5/weather?q=" + location + "&mode="+mode+"&units="+ units + "&lang=" + language + "&APPID=" + apiKey;
 
         try (Socket s = new Socket("api.openweathermap.org", 80)) {
             //Instantiates a new PrintWriter passing in the sockets output stream
@@ -56,11 +61,12 @@ public class Main {
             //Creates a BufferedReader that contains the server response
             BufferedReader bufRead = new BufferedReader(new InputStreamReader(s.getInputStream()));
 
-            //načtu a přeskočím přeskočím header, který má 10 řádků
-            //na 4 řádku se nachází delka odpovědi, kterou načtu
+            //loads header and jumps over 10 lines.
+            ///na 4 řádku se nachází delka odpovědi, kterou načtu
             String contentLength = "";
             for (int i = 0; i<11; i++){
                 String a = bufRead.readLine();
+                //System.out.println(a);
                 if (a.contains("Content-Length:")){
                     contentLength += a;
                 } else if(a.contains("HTTP/1.1")){
@@ -84,10 +90,15 @@ public class Main {
             bufRead.close();
             wtr.close();
         }
+        //System.out.println(result);
         return result;
     }
 
-    public static void printResult(Document xml) {
+    /**
+    @brief function grabs data from XML Document and prints it.
+    @arg xml Weather date from OpenWeatherMap.org in XML format
+    */
+    private static void printResult(Document xml) {
         Element cityNode = (Element) xml.getElementsByTagName("city").item(0);
         System.out.println (cityNode.getAttribute("name"));
 
