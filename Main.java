@@ -7,6 +7,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import java.text.DecimalFormat;
 
 public class Main {
 
@@ -106,7 +107,9 @@ public class Main {
         System.out.println ("overcast "+cloudsNode.getAttribute("name"));
 
         Element temperatureNode = (Element) xml.getElementsByTagName("temperature").item(0);
-        System.out.println ("temp:"+temperatureNode.getAttribute("value") + "°C");
+        double temp = Double.parseDouble(temperatureNode.getAttribute("value")) - 273.15;
+        DecimalFormat df2 = new DecimalFormat("#.##");
+        System.out.println ("temp:"+ df2.format(temp) + "°C");
 
         Element humidityNode = (Element) xml.getElementsByTagName("humidity").item(0);
         System.out.println ("humidity:"+ humidityNode.getAttribute("value") + humidityNode.getAttribute("unit"));
